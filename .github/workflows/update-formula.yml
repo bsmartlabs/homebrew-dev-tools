@@ -1,0 +1,113 @@
+name: Update dev-vault formula
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.0). Leave empty to use latest release."
+        required: false
+        type: string
+  schedule:
+    # Keep the tap updated even if release automation is temporarily broken.
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update Formula/dev-vault.rb
+        env:
+          REPO: bsmartlabs/dev-vault
+        run: |
+          set -euo pipefail
+
+          # For workflow_dispatch, inputs are only present in that event type.
+          # Avoid GitHub expression contexts so this workflow also remains valid for schedule runs.
+          input_tag=""
+          if [ -n "${GITHUB_EVENT_PATH:-}" ] && [ -f "${GITHUB_EVENT_PATH}" ]; then
+            input_tag="$(python3 -c 'import json,sys; e=json.load(open(sys.argv[1])); print((e.get("inputs") or {}).get("tag") or "")' "${GITHUB_EVENT_PATH}" 2>/dev/null || true)"
+          fi
+
+          if [ -n "$input_tag" ]; then
+            tag="$input_tag"
+          else
+            tag="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
+          fi
+
+          if [[ "$tag" != v* ]]; then
+            echo "expected tag to start with v, got: $tag" >&2
+            exit 2
+          fi
+
+          version="${tag#v}"
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+
+          echo "Downloading checksums.txt for ${REPO}@${tag}..."
+          curl -fsSL -o "$tmp/checksums.txt" "https://github.com/${REPO}/releases/download/${tag}/checksums.txt"
+
+          asset_amd64="dev-vault_${version}_darwin_amd64.tar.gz"
+          asset_arm64="dev-vault_${version}_darwin_arm64.tar.gz"
+
+          sha_amd64="$(awk -v f="$asset_amd64" '$2==f {print $1}' "$tmp/checksums.txt" | head -n 1)"
+          sha_arm64="$(awk -v f="$asset_arm64" '$2==f {print $1}' "$tmp/checksums.txt" | head -n 1)"
+
+          if [ -z "$sha_amd64" ] || [ -z "$sha_arm64" ]; then
+            echo "missing checksums for darwin assets in checksums.txt" >&2
+            head -n 50 "$tmp/checksums.txt" >&2
+            exit 1
+          fi
+
+          url_base="https://github.com/${REPO}/releases/download/${tag}"
+
+          mkdir -p Formula
+          cat > Formula/dev-vault.rb <<EOF
+          # typed: false
+          # frozen_string_literal: true
+
+          class DevVault < Formula
+            desc "Scaleway Secret Manager CLI to sync -dev secrets to disk for local development"
+            homepage "https://github.com/bsmartlabs/dev-vault"
+            version "${version}"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "${url_base}/${asset_arm64}"
+                sha256 "${sha_arm64}"
+              else
+                url "${url_base}/${asset_amd64}"
+                sha256 "${sha_amd64}"
+              end
+            end
+
+            def install
+              bin.install "dev-vault"
+            end
+
+            test do
+              system "#{bin}/dev-vault", "version"
+            end
+          end
+          EOF
+
+      - name: Commit and push if changed
+        run: |
+          set -euo pipefail
+          # git diff ignores untracked files; use status so a newly created formula is detected.
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/dev-vault.rb
+          git commit -m "dev-vault: update formula"
+          git push
