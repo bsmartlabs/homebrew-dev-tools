@@ -25,6 +25,7 @@ jobs:
       - name: Update Formula/dev-vault.rb
         env:
           REPO: bsmartlabs/dev-vault
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -38,7 +39,7 @@ jobs:
           if [ -n "$input_tag" ]; then
             tag="$input_tag"
           else
-            tag="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
+            tag="$(curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN}" "https://api.github.com/repos/${REPO}/releases/latest" | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
           fi
 
           if [[ "$tag" != v* ]]; then
@@ -51,7 +52,7 @@ jobs:
           trap 'rm -rf "$tmp"' EXIT
 
           echo "Downloading checksums.txt for ${REPO}@${tag}..."
-          curl -fsSL -o "$tmp/checksums.txt" "https://github.com/${REPO}/releases/download/${tag}/checksums.txt"
+          curl -fsSL -o "$tmp/checksums.txt" -H "Authorization: Bearer ${GITHUB_TOKEN}" "https://github.com/${REPO}/releases/download/${tag}/checksums.txt"
 
           asset_amd64="dev-vault_${version}_darwin_amd64.tar.gz"
           asset_arm64="dev-vault_${version}_darwin_arm64.tar.gz"
@@ -84,7 +85,7 @@ jobs:
               else
                 url "${url_base}/${asset_amd64}"
                 sha256 "${sha_amd64}"
-              end
+              fi
             end
 
             def install
@@ -109,5 +110,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/dev-vault.rb
-          git commit -m "dev-vault: update formula"
+          git commit -m "dev-vault: update formula
+
+Co-authored-by: Qwen-Coder <qwen-coder@alibabacloud.com>"
           git push
