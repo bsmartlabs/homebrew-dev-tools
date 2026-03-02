@@ -111,5 +111,4 @@ jobs:
           git add Formula/dev-vault.rb
           git commit -m "dev-vault: update formula
 
-Co-authored-by: Qwen-Coder <qwen-coder@alibabacloud.com>"
           git push
