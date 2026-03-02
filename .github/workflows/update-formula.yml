@@ -8,7 +8,6 @@ on:
         required: false
         type: string
   schedule:
-    # Keep the tap updated even if release automation is temporarily broken.
     - cron: "17 */6 * * *"
 
 permissions:
@@ -67,34 +66,37 @@ jobs:
           url_base="https://github.com/${REPO}/releases/download/${tag}"
 
           mkdir -p Formula
-          cat > Formula/dev-vault.rb <<GEMFILE
-# typed: false
-# frozen_string_literal: true
+          python3 <<PYEOF
+          content = '''# typed: false
+          # frozen_string_literal: true
 
-class DevVault < Formula
-  desc "Scaleway Secret Manager CLI to sync -dev secrets to disk for local development"
-  homepage "https://github.com/bsmartlabs/dev-vault"
-  version "${version}"
+          class DevVault < Formula
+            desc "Scaleway Secret Manager CLI to sync -dev secrets to disk for local development"
+            homepage "https://github.com/bsmartlabs/dev-vault"
+            version "${version}"
 
-  on_macos do
-    if Hardware::CPU.arm?
-      url "${url_base}/${asset_arm64}"
-      sha256 "${sha_arm64}"
-    else
-      url "${url_base}/${asset_amd64}"
-      sha256 "${sha_amd64}"
-    end
-  end
+            on_macos do
+              if Hardware::CPU.arm?
+                url "${url_base}/${asset_arm64}"
+                sha256 "${sha_arm64}"
+              else
+                url "${url_base}/${asset_amd64}"
+                sha256 "${sha_amd64}"
+              end
+            end
 
-  def install
-    bin.install "dev-vault"
-  end
+            def install
+              bin.install "dev-vault"
+            end
 
-  test do
-    system "#{bin}/dev-vault", "version"
-  end
-end
-GEMFILE
+            test do
+              system "#{bin}/dev-vault", "version"
+            end
+          end
+          '''
+          with open("Formula/dev-vault.rb", "w") as f:
+            f.write(content)
+          PYEOF
 
       - name: Commit and push if changed
         run: |
