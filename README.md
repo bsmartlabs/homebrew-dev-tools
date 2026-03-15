@@ -1,16 +1,35 @@
-# bsmartlabs/dev-tools (Homebrew tap)
+# bsmartlabs/dev-tools
 
-This is the Homebrew tap repository for bSmart developer tooling.
+Package repository for bSmart developer tooling. Serves both Homebrew (macOS/Linux) and Scoop (Windows).
 
-## Usage
+## Homebrew (macOS)
 
 ```bash
 brew tap bsmartlabs/dev-tools
 brew install dev-vault
 ```
 
+## Scoop (Windows)
+
+```powershell
+scoop bucket add bsmartlabs https://github.com/bsmartlabs/homebrew-dev-tools
+scoop install dev-vault
+```
+
+## Linux
+
+Download `.deb` or `.rpm` packages directly from [GitHub Releases](https://github.com/bsmartlabs/dev-vault/releases).
+
+```bash
+# Debian/Ubuntu
+sudo dpkg -i dev-vault_*.deb
+
+# RHEL/Fedora
+sudo rpm -i dev-vault_*.rpm
+```
+
 ## Notes
 
-- Formulae live under `Formula/`.
-- `dev-vault` is published from `bsmartlabs/dev-vault` on `v*` tags.
-- `Formula/dev-vault.rb` is intended to be generated/updated by CI (not edited manually).
+- Homebrew formulae live under `Formula/`.
+- Scoop manifests live under `bucket/`.
+- Both are generated/updated by CI on `v*` tags from `bsmartlabs/dev-vault`.
