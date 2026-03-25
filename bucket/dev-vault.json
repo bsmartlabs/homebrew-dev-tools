@@ -1,12 +1,12 @@
 {
-    "version": "0.0.8",
+    "version": "0.1.0",
     "description": "Scaleway Secret Manager CLI to sync -dev secrets to disk for local development",
     "homepage": "https://github.com/bsmartlabs/dev-vault",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/bsmartlabs/dev-vault/releases/download/v0.0.8/dev-vault_0.0.8_windows_amd64.zip",
-            "hash": "65166f973c0435fb1f76a5be421420573e395c691da1a4343215666615816304",
+            "url": "https://github.com/bsmartlabs/dev-vault/releases/download/v0.1.0/dev-vault_0.1.0_windows_amd64.zip",
+            "hash": "54dc004905aa11b99b54c0bd24b3d4308e23db2a2a61d8f334f5091154d0a6be",
             "bin": "dev-vault.exe"
         }
     },
