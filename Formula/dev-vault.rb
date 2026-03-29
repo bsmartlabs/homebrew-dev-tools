@@ -4,15 +4,15 @@
 class DevVault < Formula
   desc "Scaleway Secret Manager CLI to pull/push -dev secrets to disk for local development"
   homepage "https://github.com/bsmartlabs/dev-vault"
-  version "0.1.0"
+  version "0.1.1"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/bsmartlabs/dev-vault/releases/download/v0.1.0/dev-vault_0.1.0_darwin_arm64.tar.gz"
-      sha256 "6014d694b15e666f626a78720bda228fb9c6134c66b3db9b9ae30b4c430f6e92"
+      url "https://github.com/bsmartlabs/dev-vault/releases/download/v0.1.1/dev-vault_0.1.1_darwin_arm64.tar.gz"
+      sha256 "6045457dbb1840d7acc3068878578f455de739309320171ff180fa4d6b4a1f2c"
     else
-      url "https://github.com/bsmartlabs/dev-vault/releases/download/v0.1.0/dev-vault_0.1.0_darwin_amd64.tar.gz"
-      sha256 "ab735348dbcd17f6f9dfebb89c3174490426685d5c7bac52d2b68be62d5b2f2b"
+      url "https://github.com/bsmartlabs/dev-vault/releases/download/v0.1.1/dev-vault_0.1.1_darwin_amd64.tar.gz"
+      sha256 "0ab53eb530bc974a661914ee57c22ca3fd48c3721869f2399c20bbe318d38263"
     end
   end
 
